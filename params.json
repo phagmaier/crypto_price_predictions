@@ -1,0 +1,86 @@
+{
+    "Price_model_1": {
+        "params": {
+            "lstm_hidden_size": 5,
+            "fc_hidden_size": 5,
+            "num_layers": 1,
+            "dropout_prob": 0
+        },
+        "validation_loss": 0.014542046934366226,
+        "lr": 0.1
+    },
+    "Percent_model_1": {
+        "params": {
+            "lstm_hidden_size": 5,
+            "fc_hidden_size": 5,
+            "num_layers": 1,
+            "dropout_prob": 0
+        },
+        "validation_loss": 10.984543800354004,
+        "lr": 0.01
+    },
+    "Price_model_2": {
+        "params": {
+            "lstm_hidden_size": 5,
+            "fc_hidden_size": 5,
+            "num_layers": 1,
+            "dropout_prob": 0
+        },
+        "validation_loss": 0.1590089499950409,
+        "lr": 0.01
+    },
+    "Percent_model_2": {
+        "params": {
+            "lstm_hidden_size": 5,
+            "fc_hidden_size": 5,
+            "num_layers": 1,
+            "dropout_prob": 0
+        },
+        "validation_loss": 10.951218605041504,
+        "lr": 0.01
+    },
+    "Price_model_3": {
+        "params": {
+            "lstm_hidden_size": 5,
+            "fc_hidden_size": 5,
+            "fc_hidden_size_2": 5,
+            "num_layers": 1,
+            "dropout_prob": 0
+        },
+        "validation_loss": 0.0186202023178339,
+        "lr": 0.001
+    },
+    "Percent_model_3": {
+        "params": {
+            "lstm_hidden_size": 5,
+            "fc_hidden_size": 5,
+            "fc_hidden_size_2": 5,
+            "num_layers": 2,
+            "dropout_prob": 0
+        },
+        "validation_loss": 10.927324295043945,
+        "lr": 0.1
+    },
+    "Price_model_4": {
+        "params": {
+            "lstm_hidden_size": 5,
+            "fc_hidden_size": 5,
+            "fc_hidden_size_2": 5,
+            "num_layers": 1,
+            "dropout_prob": 0
+        },
+        "validation_loss": 0.013414490036666393,
+        "lr": 0.1
+    },
+    "Percent_model_4": {
+        "params": {
+            "lstm_hidden_size": 5,
+            "fc_hidden_size": 5,
+            "fc_hidden_size_2": 5,
+            "num_layers": 2,
+            "dropout_prob": 0
+        },
+        "validation_loss": 10.926026344299316,
+        "lr": 0.1
+    }
+}
