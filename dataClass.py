@@ -5,6 +5,12 @@ from torch.utils.data import DataLoader, TensorDataset
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import KFold
 
+'''
+IDEALLY I WOULD EDIT THE Y's at the end when i put them in the data loader 
+And probably scale them there as well so I don't have to do it in my main function but I 
+am currently not doing that
+'''
+
 class DataClass:
     """
     Takes the following arguments (they have default values):
@@ -53,11 +59,7 @@ class DataClass:
         return self.df
     
     def get_unscaled_data(self):
-        if self.unscaled_ys:
-            return self.unscaled_ys, self.scaler
-        else:
-            print("Must call get_percent_data first")
-            return None
+        return self.unscaled_ys, self.scaler
         
     def get_percent_val_data(self):
         X,y,= self.percent_change_data()
@@ -82,10 +84,8 @@ class DataClass:
     
     def get_price_val_data(self):
         X,y= self.get_price_change()
-        X_train, X_test, y_train, y_test, scaler, unscaled_y =\
+        X_train, X_test, y_train, y_test, unscaled_y =\
         self.train_test_split_scale(X,y)
-        
-        self.scaler = scaler
         self.unscaled_ys = unscaled_y
         
         X_train, y_train = self.put_days_together(X_train,y_train)
@@ -96,10 +96,9 @@ class DataClass:
     
     def get_price_data(self):
         X,y= self.get_price_change()
-        X_train, X_test, y_train, y_test, scaler, unscaled_y =\
+        X_train, X_test, y_train, y_test, unscaled_y =\
         self.train_test_split_scale(X,y)
         
-        self.scaler = scaler
         self.unscaled_ys = unscaled_y
         
         X_train, y_train = self.put_days_together(X_train,y_train)
@@ -141,6 +140,7 @@ class DataClass:
         y_test = y[train_size:]
         feature_scaler.fit(X_train)
         target_scaler.fit(y_train.reshape(-1,1))
+        self.scaler = target_scaler
         X_train = feature_scaler.transform(X_train)
         X_test = feature_scaler.transform(X_test)
         y_train = target_scaler.transform(y_train.reshape(-1,1))
@@ -150,7 +150,6 @@ class DataClass:
     def put_days_together_percentage(self, X, y):
         xs = np.array([X[i:i+self.num_days] for i in range(len(X)-self.num_days)])
         ys = np.array([y[i+self.num_days-1] for i in range(len(y)-self.num_days)])
-        #return torch.tensor(xs, dtype=torch.float32), torch.tensor(ys, dtype=torch.float32)
         return xs, ys
     
     
@@ -209,6 +208,7 @@ class DataClass:
 
         feature_scaler.fit(X_train)
         target_scaler.fit(y_train.reshape(-1,1))
+        self.scaler = target_scaler
         X_train = feature_scaler.transform(X_train)
         X_test = feature_scaler.transform(X_test)
         y_train = target_scaler.transform(y_train.reshape(-1,1))
@@ -217,7 +217,7 @@ class DataClass:
         X_train = np.hstack((y_train, X_train))
         X_test = np.hstack((y_test.reshape(-1,1), X_test))
 
-        return X_train, X_test, y_train, y_test, target_scaler, y[train_size:]
+        return X_train, X_test, y_train, y_test, y[train_size:]
     
     def put_days_together(self, X, y):
         xs = np.array([X[i:i+self.num_days] for i in range(len(X)-self.num_days)])

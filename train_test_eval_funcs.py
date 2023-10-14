@@ -5,8 +5,16 @@ import pandas as pd
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.preprocessing import StandardScaler
 
+'''
+NOTES:
+BECAUSE YOU NEED 5 DAYS OF DATA AND BECAUSE YOU DID SOMETHING STUPID IN THE DATA CLASS
+YOU HAVE TO (COULD NOT HAVE TO COULD JUST USE SCALED Y'S) PASS THE UNSCALED Y'S AND 
+THEN CUT OFF THE FIRST 5 BECAUSE YOU TAKE 5 DAYS WORTH OF DATA TO PREDICT THE NEXT DAY
+THIS SHOULD PROBABLY BE CHANGED SO IT'S HANDLED IN THE DATA CLASS
+'''
+
 def train(model, data, epochs, lr=.001):
-	avg_epoch_loss = [] #don't append anything to this currently
+	avg_epoch_loss = [] 
 	torch.manual_seed(42)
 	loss_fn = nn.MSELoss()
 	optimizer = torch.optim.Adam(model.parameters(),lr=lr)
@@ -14,58 +22,34 @@ def train(model, data, epochs, lr=.001):
 	for epoch in range(epochs):
 		batch_loss = []
 		for X, y in data:
+			#y = torch.tensor(y)
 			optimizer.zero_grad()
 			temp = model(X)
-			#preds = torch.reshape(model(X), y.shape)
 			preds = model(X).reshape(y.shape)
 			loss = loss_fn(preds,y)
 			batch_loss.append(loss)
 			loss.backward()
 			optimizer.step()
-		avg_epoch_loss.append(sum(batch_loss)/len(batch_loss))
+		avg_epoch_loss.append(sum([abs(i) for i in batch_loss]) / len(batch_loss))
 	avg_epoch_loss = [i.item() for i in avg_epoch_loss]
 	return avg_epoch_loss
 
 
-def test(model, test_data):
+def test(model,test_data,scaler,Y):
+	Y = torch.tensor(Y[5:]).reshape(-1,1)
 	with torch.inference_mode():
 		loss_fn = nn.MSELoss()
-		for X,y in test_data:
-			preds = model(X).reshape(y.shape)
-			test_loss = loss_fn(preds,y)
-	#return preds.numpy(), y.numpy(), test_loss.item(), eval_prct_diff(preds,y)
-	return preds.numpy(), y.numpy(), test_loss.item()
+		for X,_ in test_data:
+			preds = model(X)
+			preds = convert(scaler,preds)
+			test_loss = loss_fn(preds.reshape(Y.shape),Y)
+	return preds.numpy(),test_loss.item()
 
-def test_for_preds(model,test_data,scaler):
-	with torch.inference_mode():
-		loss_fn = nn.MSELoss()
-		for X,y in test_data:
-			#preds = torch.reshape(model(X), y.shape)
-			preds = model(X).reshape(y.shape)
-			#preds = torch.reshape(model(X), y.shape)
-			#preds,Y = convert(scaler,preds,y)
-			test_loss = loss_fn(preds,y)
-	#return preds.numpy(), y.numpy(),test_loss.item(), eval_prct_diff(preds,y)
-	return preds.numpy(), y.numpy(),test_loss.item()
-
-'''
-def eval_prct_diff(predictions, actual):
-	return ((predictions - actual) / actual) * 100
-'''
-
-'''
-ERROR:
-Reshape your data either using array.reshape(-1, 1) 
-if your data has a single feature or array.reshape(1, -1) if it contains a single sample.
-'''
-def convert(scaler, predictions,X):
+def convert(scaler, predictions):
 	numpied = predictions.numpy()
-	#may have to transform the data 
 	unscaled_preds = scaler.inverse_transform(predictions.reshape(-1,1))
-	unscaled_target = scaler.inverse_transform(X.reshape(-1,1))
 	back_to_torch = torch.from_numpy(unscaled_preds)
-	back_to_torch_X = torch.from_numpy(unscaled_target)
-	return back_to_torch,back_to_torch_X
+	return back_to_torch
 
 
 
