@@ -4,22 +4,13 @@ from train_test_eval_funcs import *
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 import copy
+import numpy as np
+from ensembl_funcs import *
 
 '''
 TO DO: 
-
-TEST TO MAKE SURE THAT WE ELIMINATE THE FIRST 5 IN UNSCALED Y'S AND NOT THE LAST 5
-JUST WHATEVER DOES BETTER WHEN YOU TEST BOTH ON 1000 EPOCHS
-MAKE SURE YOU CHANGE NOT ONLY THE TRAIN_TST_EVALS FUNCTIONS BUT FOR GRAPGING YOU
-NEED TO ADJUST THEM WHEN YOU PASS IT YOU'LL SEE IT BELLOW YOU PASS THEM IN AS LIKE 
-[UNSCALED_PRICE[5:], UNSCALED_PERCENT[5:]]
-
-MAIN 2 SHOULD CONVER THE PRICES AND THE PERCENTAGES TO UNSCALED VALUES
-BOTH THE PREDICTIONS AND THE ACTUAL VALUES SO WE CAN SEE HOW FAR OFF IT REALLY IS 
-AT A PRICE/PERCENTAGE SCALE THAT IS NOT STANDARDIZED
-DID THIS WHOLE THING WEIRD COULD PROBABLY BE IMPROVED THINK THERE WAS A REASON
-I SCALED EVERYTHING THINK IT SEEMED TO IMPROVE EVERYTHING DURING TESTING BEEN A WHILE DON'T 
-ENTIRLEY REMEMBER BUT 
+BEFORE PASSING UNSCALED TO THE ENSEMBLE FUNC MAKE SURE TO CUT OFF THE FIRST 5 
+NEED TO FLATTEN PREDICTIONS
 '''
 
 def main():
@@ -62,34 +53,51 @@ def main():
 			preds,loss= test(models[i], price_test_data,scaler_price,unscaled_price)
 			predictions.append(preds)
 			test_losses.append(loss)
-			
 			price_model+=1
 		else:
-			#training_losses.append(train(models[i], percent_train_data,epochs,learning_rates[i]))
 			training_losses.append(train(models[i], percent_train_data,epochs,.001))
-			#preds,Y,loss, diff = test_for_preds(models[i], price_test_data,scaler)
 			preds,loss = test(models[i], percent_test_data,scaler_percent,unscaled_percent)
 			predictions.append(preds)
 			test_losses.append(loss)
 			percent_model +=1
+	
 	plot_train_loss(model_labels,training_losses,True)
-	'''
-	NOTE THAT IF IT'S NOT THE FIRST 5 even though i'm PRETTY SURE IT IS WE WILL HAVE TO CHANGE THIS
-	'''
 	plot_test_results(model_labels,predictions,[unscaled_price[5:],unscaled_percent[5:]],True)
+
+	#MAY HAVE TO USE NEW NAMES CAUSE I THINK IT FUCKS WITH PLOTTING
+	ensemble_predictions = []
+	targets = unscaled_price[5:].flatten()
+	for i in range(len(predictions)):
+		ensemble_predictions.append(predictions[i].flatten())
+
+	preds = []
+	errors = []
+	for i in range(len(ensemble_predictions)):
+		if i%2==0:
+			preds.append(ensemble_predictions[i])
+			errors.append(price_error(ensemble_predictions[i],targets))
+		else:
+			temp1,temp2 = percent_to_val(ensemble_predictions[i],targets)
+			preds.append(temp1)
+			errors.append(temp2)
+
+
+
+	ensemble_preds = get_ensemble_pred(preds,errors)
+
+	plot_ensemble(ensemble_preds,targets,True)
 	plt.show()
 
 
 def plot_train_loss(title, data,save_plot=False):
 	for x,i in enumerate(data):
 		plt.figure()
-		#x = [i for i in range(len(i))]
 		plt.plot(i)
 		plt.xlabel('EPOCH')
 		plt.ylabel("AVERAGE BATCH LOSS PER EPOCH")
 		plt.title(f"{title[x]} AVERAGE BATCH LOSS PER EPOCH")
 		if save_plot:
-			plt.savefig(f'{title[x]} train_losses.png')
+			plt.savefig(f'graphs_results/{title[x]} train_losses.png')
 
 def plot_test_results(title, preds,actual,save_plot=False):
 	for x,i in enumerate(preds):
@@ -103,7 +111,21 @@ def plot_test_results(title, preds,actual,save_plot=False):
 		plt.title(f"{title[x]} PREDICTIONS VS ACTUAL PRICE")
 		plt.legend()
 		if save_plot:
-			plt.savefig(f'{title[x]} Prediction_results.png')
+			plt.savefig(f'graphs_results/{title[x]} Prediction_results.png')
+
+def plot_ensemble(preds, targets,save_plot=False):
+	plt.figure()
+	x_axis = [point for point in range(len(targets))]
+	plt.scatter(x_axis, preds, color = 'red', marker='o', label="PREDICTED PRICE")
+	plt.scatter(x_axis,targets,color='blue',marker='x',label="REAL PRICE")
+	plt.xlabel('INDEX/DAY')
+	plt.ylabel("PRICE")
+	plt.title(f"ENSEMBLE PREDICTIONS VS ACTUAL PRICE")
+	plt.legend()
+	if save_plot:
+		plt.savefig(f'graphs_results/ENSEMBLE_Prediction_results.png')
+
+
 
 
 

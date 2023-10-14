@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-
 class Percent_model_1(nn.Module):
     def __init__(self, num_features=10,lstm_hidden_size=10,
                 fc_hidden_size=10,num_layers=2, dropout_prob=0):

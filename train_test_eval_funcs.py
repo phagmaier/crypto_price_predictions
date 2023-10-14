@@ -43,6 +43,7 @@ def test(model,test_data,scaler,Y):
 			preds = model(X)
 			preds = convert(scaler,preds)
 			test_loss = loss_fn(preds.reshape(Y.shape),Y)
+
 	return preds.numpy(),test_loss.item()
 
 def convert(scaler, predictions):
@@ -50,6 +51,8 @@ def convert(scaler, predictions):
 	unscaled_preds = scaler.inverse_transform(predictions.reshape(-1,1))
 	back_to_torch = torch.from_numpy(unscaled_preds)
 	return back_to_torch
+
+
 
 
 
